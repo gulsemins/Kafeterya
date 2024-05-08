@@ -15,7 +15,7 @@ app.get("/", (request, response) => {
   return response.status(234).send("welcome to mern stack");
 });
 
-app.post("/users", async (request, response) => {
+app.post("/api/users", async (request, response) => {
   try {
     if (!request.body.name || !request.body.password) {
       return response.status(400).send({
