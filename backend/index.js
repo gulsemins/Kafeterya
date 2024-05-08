@@ -1,8 +1,10 @@
 import express from "express";
 import mongoose from "mongoose";
+import cors from "cors";
 import { User } from "./models/userModel.js";
 
 const app = express();
+app.use(cors()); // cors default olarak bütün sunuculardan gelen isteklere izin veriyor
 app.use(express.json());
 const PORT = process.env.PORT || 5555;
 const mongoDBURL =
@@ -32,7 +34,7 @@ app.post("/users", async (request, response) => {
   }
 });
 
-app.post("/login", async (req, res) => {
+app.post("/api/login", async (req, res) => {
   try {
     //find promise döndürdüğü için await olmalı
     const user = await User.findOne({ name: req.body.name });
