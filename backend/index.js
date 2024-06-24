@@ -2,35 +2,54 @@ import express from "express";
 import mongoose from "mongoose";
 import cors from "cors";
 import { User } from "./models/userModel.js";
+import session from "express-session";
 
 const app = express();
-app.use(cors()); // cors default olarak bütün sunuculardan gelen isteklere izin veriyor
+app.use(cors({ credentials: true, origin: "http://localhost:65125" })); // cors default olarak bütün sunuculardan gelen isteklere izin veriyor
 app.use(express.json());
 const PORT = process.env.PORT || 5555;
 const mongoDBURL =
   "mongodb+srv://admin:admin1234@cafeteria.gjzhepm.mongodb.net/?retryWrites=true&w=majority&appName=cafeteria";
 
-app.get("/", (request, response) => {
-  console.log(request);
-  return response.status(234).send("welcome to mern stack");
+app.use(
+  //bunun amacı req.session kullanmak çünkü istek geldiğindde ve yolladığında onu parse eden kod burda
+  session({
+    secret: "key that will sign cookie",
+    resave: false,
+    saveUninitialized: true,
+    cookie: {
+      secure: false, //bu başta true yapmıştım ama sadece https den gelen cookieleri kabul ettiği için (benimki http) cookieleri göndermedi
+    },
+  })
+);
+
+//authentication middleware, check if user session has a name. obtained from login
+function isAuthenticated(req, res, next) {
+  if (req.session.name) next();
+  else res.status(401).json({ error: "user is not logged in" });
+}
+
+app.get("/api/myName", isAuthenticated, (req, res) => {
+  res.json({ message: "hello " + req.session.name });
+  // return res.status(234).send("welcome to mern stack");
 });
 
-app.post("/api/users", async (request, response) => {
+app.post("/api/users", async (req, res) => {
   try {
-    if (!request.body.name || !request.body.password) {
-      return response.status(400).send({
+    if (!req.body.name || !req.body.password) {
+      return res.status(400).send({
         message: " send all required fields: name, password",
       });
     }
     const newUser = {
-      name: request.body.name,
-      password: request.body.password,
+      name: req.body.name,
+      password: req.body.password,
     };
     const user = await User.create(newUser);
-    return response.status(201).send(user);
+    return res.status(201).send(user);
   } catch (error) {
     console.log(error.message);
-    response.status(500).send({ message: error.message });
+    res.status(500).send({ message: error.message });
   }
 });
 
@@ -41,7 +60,10 @@ app.post("/api/login", async (req, res) => {
 
     console.log(user);
     if (req.body.password === user.password) {
-      return res.json({ message: "Login successful" });
+      req.session.name = req.body.name; // store user name in session, doğru şekilde login yapınca  sessionda kaydediyoruz
+      req.session.save((err) => {
+        return res.json({ message: "Login successful" });
+      });
     } else {
       return res.status(401).json({ message: "Invalid password" });
     }
@@ -61,5 +83,5 @@ mongoose
     // express serverım  app database bağlandığında çalışsın istedim bu yüzden app.listeni bunun içinde yazdım
   })
   .catch((error) => {
-    console.log("error");
+    console.log("error: " + error);
   });

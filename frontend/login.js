@@ -10,6 +10,7 @@ document
         headers: {
           "Content-Type": "application/json",
         },
+        credentials: "include",
         body: JSON.stringify({ name, password }),
       });
       const data = await response.json();

@@ -16,4 +16,4 @@ const userSchema = mongoose.Schema(
     timestamps: true, //veri ne zaman oluşturuldu ve güncellendi bilgisini veriyor
   }
 );
-export const User = mongoose.model("User", userSchema);
+export const User = mongoose.model("User", userSchema, "users");

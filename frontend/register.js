@@ -20,6 +20,10 @@ document
           document.getElementById("message").textContent = data.error;
         } else {
           document.getElementById("message").textContent = data.message;
+          let registrationSuccesful = true;
+          if (registrationSuccesful) {
+            window.location.href = "login.html";
+          }
         }
       })
       .catch((error) => {
